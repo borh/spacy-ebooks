@@ -19,7 +19,8 @@ class Corpus(object):
         if not self.corpus_path.exists():
             raise Exception(f"Given corpus path {self.corpus_path} does not exist.")
         if self.corpus_path.is_dir():
-            book_files = self.corpus_path.glob("*.epub*")
+            # We keep the books in sorted filename order as tests rely on a deterministic ordering.
+            book_files = sorted(self.corpus_path.glob("*.epub*"))
         else:
             book_files = [self.corpus_path]
         self.books = [Book(ebook, serialize=serialize) for ebook in book_files]
