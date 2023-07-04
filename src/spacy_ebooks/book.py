@@ -251,9 +251,9 @@ class Book(object):
 
         if serialize:
             with open(
-                self.file_path.parent / Path(self.file_path.with_suffix(".json")), "w"
+                Path(self.file_path.with_suffix(".json")), "w"
             ) as f_json, open(
-                self.file_path.parent / Path(self.file_path.with_suffix(".txt")), "w"
+                Path(self.file_path.with_suffix(".txt")), "w"
             ) as f_txt:
                 json.dump(
                     self.structure,
