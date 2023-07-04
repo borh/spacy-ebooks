@@ -2,8 +2,6 @@
 
 {
   # https://devenv.sh/basics/
-  env.GREET = "devenv";
-
   # https://devenv.sh/packages/
   packages = with pkgs; [
     git
@@ -11,12 +9,9 @@
     stdenv.cc.cc.lib
   ];
 
-  # https://devenv.sh/scripts/
-  scripts.hello.exec = "echo hello from $GREET";
-
   enterShell = ''
-    hello
-    git --version
+    export OPENAI_API_KEY=$(cat /run/agenix/openai-api)
+    export OPENAI_API_ORG=$(cat /run/agenix/openai-org)
   '';
 
   # https://devenv.sh/languages/

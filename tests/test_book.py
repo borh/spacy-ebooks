@@ -3,7 +3,7 @@ from spacy_ebooks.book import Book, Paragraph
 
 
 def test_book_load():
-    book = Book(Path("resources/a-merritt_the-moon-pool_advanced.epub3"))
+    book = Book(Path("resources/a-merritt_the-moon-pool_advanced.epub"))
     # print(list(str(p) for p in list(book.paragraphs())[0:5]))
     # for part in book:
     #     # Short-circuit below by specifying level here (i.e. change parts() to sentences())

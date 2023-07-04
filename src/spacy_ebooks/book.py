@@ -142,7 +142,7 @@ class BookStructure(object):
 
     def __init__(self, list_of_parts: List):
         # TODO this needs to be indexed (which parts correspond to which chapters, etc.) and saved in-order
-        part, section, chapter = None, None, None
+        # part, section, chapter = None, None, None
         self.parts = []
         self.sections = []
         self.chapters = []
@@ -273,7 +273,7 @@ class Book(object):
         This list is not comprehensive, and may need to be updated depending on the ebook used.
         Unrecognized filenames will be extracted (not ignored)."""
         s = s.replace(".xhtml", "")
-        extract_parts = ["act", "book", "chapter", "part"]
+        extract_parts = ["prelude", "act", "book", "chapter", "part"]
         ignore_parts = [
             "appendix",
             "colophon",
@@ -361,6 +361,7 @@ class Book(object):
                 paragraph_template = {"text": None, "meta": {}, "tags": []}
                 paragraph = deepcopy(paragraph_template)
                 for action, element in context:
+                    # Remove non-visible characters:
                     text = element.text.replace("\u2060", "") if element.text else None
                     if not text or (text and (text == "" or text.isspace())):
                         continue
