@@ -21,6 +21,8 @@
     poetry.enable = true;
   };
 
+  scripts.export-pip.exec = "poetry export -f requirements.txt --output requirements.txt; poetry export --with llm -f requirements.txt --output requirements-llm.txt";
+
   # https://devenv.sh/pre-commit-hooks/
   # pre-commit.hooks.shellcheck.enable = true;
 
