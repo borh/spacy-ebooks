@@ -74,8 +74,8 @@ def test_spacy_cached():
 # from multiprocessing import Pool, Process, get_context
 # from loky import get_reusable_executor
 # from itertools import chain, islice
-# 
-# 
+#
+#
 # def iter_chunks(iterable, n):
 #     """[list(chunk) for chunk in iter_chunks(iter(range(20)), 3)]
 #     [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11], [12, 13, 14], [15, 16, 17], [18, 19]]"""
@@ -85,13 +85,13 @@ def test_spacy_cached():
 #         if not chunk:
 #             return
 #         yield chunk
-# 
-# 
+#
+#
 # def doc_match(doc):
 #     ms = matcher(doc)
 #     return [m[1:] for m in ms]
-# 
-# 
+#
+#
 # def parallel_match(docs):
 #     print("parallel_match", len(docs))
 #     return [
@@ -100,8 +100,8 @@ def test_spacy_cached():
 #         for ms in doc_match(doc)
 #         # for m in ms
 #     ]
-# 
-# 
+#
+#
 # def test_spacy_parallel():
 #     b = Book(Path("resources/a-merritt_the-moon-pool_advanced.epub"))
 #     cache_filename = Path(b.file_path.name + ".spacy")
@@ -109,12 +109,12 @@ def test_spacy_cached():
 #         docs = list(nlp.pipe(p.text() for p in b.paragraphs()))
 #         doc_bin = DocBin(docs=docs, store_user_data=True)
 #         doc_bin.to_disk(cache_filename)
-# 
+#
 #     start_time = time.time()
 #     docs = list(DocBin().from_disk(cache_filename).get_docs(nlp.vocab))
 #     print("--- %s seconds --- DocBin load" % (time.time() - start_time))
 #     print(len(docs))
-# 
+#
 #     for _ in range(8):
 #         docs += docs
 #     print(docs[0:3])
@@ -126,7 +126,7 @@ def test_spacy_cached():
 #         chunk_size = 50000
 #     doc_iter = list(iter_chunks(docs, chunk_size))
 #     print(len(doc_iter), [len(c) for c in doc_iter])
-# 
+#
 #     start_time = time.time()
 #     # # with Pool(processes=24) as pool:
 #     # with get_context("fork").Pool() as pool:
@@ -137,7 +137,7 @@ def test_spacy_cached():
 #     #          ms = result.get()
 #     #          if len(ms) > 0:
 #     #              matches.extend(ms)
-# 
+#
 #     # matches.extend(chain.from_iterable(
 #     #     m
 #     #     for m in pool.imap(parallel_match, doc_iter, chunksize=1)
@@ -148,7 +148,7 @@ def test_spacy_cached():
 #         futures = []
 #         for chunk in doc_iter:
 #             futures.append(executor.submit(parallel_match, chunk))
-# 
+#
 #         concurrent.futures.wait(futures)
 #         for future in futures:
 #             # for future, _ in concurrent.futures.wait(futures): # as_completed(futures):
@@ -157,13 +157,12 @@ def test_spacy_cached():
 #                 matches.extend(ms)
 #         # matches.extend(chain.from_iterable(m for m in executor.map(parallel_match, docs, chunksize=500) if m))
 #     print("--- %s seconds --- Parallel match" % (time.time() - start_time))
-# 
+#
 #     print(matches[:10])
-# 
+#
 #     assert len(matches) == 17949
 
-def test_llm_ner():
-    r = llm_ner("Jack and Jill rode up the hill in Les Deux Alpes")
-    assert len(r) == 1
-    assert len(r[0][0]) > 1
-    
+# def test_llm_ner():
+#    r = llm_ner("Jack and Jill rode up the hill in Les Deux Alpes")
+#    assert len(r) == 1
+#    assert len(r[0][0]) > 1

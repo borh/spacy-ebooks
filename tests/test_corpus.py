@@ -32,7 +32,7 @@ def test_corpus_book_load():
 def test_standard_ebooks_load():
     # Values current as of 2021/02/02 with the assumption that changes are additive.
     # c = Corpus(Path("resources/standard-ebooks"))
-    c = Corpus(Path("resources/fantasy"))
+    c = Corpus(Path("resources/the-bbcs-100-greatest-british-novels-2015"))
     assert len(list(c.books)) >= 47
     assert len(c.author_idx) > 0
     # assert len(c.by_genre("Science Fiction")) >= 39
@@ -50,4 +50,6 @@ def test_standard_ebooks_load():
             assert len(text) > 100
             f.write(book.text())
             with open(json_path, "w") as j:
-                json.dump(list(book.paragraph_meta_tuples()), j, ensure_ascii=False, indent=4)
+                json.dump(
+                    list(book.paragraph_meta_tuples()), j, ensure_ascii=False, indent=4
+                )

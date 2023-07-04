@@ -251,16 +251,20 @@ class Book(object):
 
         if serialize:
             with open(
-                self.file_path.parent / Path(self.file_path.stem + ".json"), "w"
-            ) as f:
+                self.file_path.parent / Path(self.file_path.with_suffix(".json")), "w"
+            ) as f_json, open(
+                self.file_path.parent / Path(self.file_path.with_suffix(".txt")), "w"
+            ) as f_txt:
                 json.dump(
                     self.structure,
-                    f,
+                    f_json,
                     ensure_ascii=False,
                     default=lambda x: x.to_json()
                     if hasattr(x, "to_json")
                     else x.__dict__,
+                    indent=4,
                 )
+                f_txt.write(self.text())
 
     # def __call__(
     #     self, doc: Doc
