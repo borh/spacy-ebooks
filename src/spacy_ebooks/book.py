@@ -40,6 +40,24 @@ def text_windows(text, window_size=2000):
         yield text[i * window_size : (i * window_size) + window_size]
 
 
+def clean_text(s: str | None) -> str | None:
+    if s is None:
+        return None
+    clean_rx = re.compile(r"[\u2060]")
+    return clean_rx.sub("", s.replace("\xa0", " "))
+
+
+def textify(t):
+    s = []
+    if t.text:
+        s.append(t.text)
+    for child in t.getchildren():
+        s.extend(textify(child))
+    if t.tail:
+        s.append(t.tail)
+    return "".join(s)
+
+
 # class Sentence(object):
 #     def __init__(self, s):
 #         self.s = s
@@ -82,11 +100,13 @@ class Paragraph(object):
             self._meta = p["meta"]
         except KeyError:
             self._meta = {}
+        self._spans = p["spans"] if "spans" in p else None
+        self._label = p["label"] if "label" in p else None
         if level:
             self._meta["level"] = level
         if number:
             self._meta["number"] = number
-        self._meta["tags"] = p["tags"] if "tags" in p else []
+        # self._meta["tags"] = p["tags"] if "tags" in p else []
 
     # def _process(self):
     #     self.docs = Paragraph.nlp.pipe(self.text)  # , n_process=-1, batch_size=10000)
@@ -112,10 +132,19 @@ class Paragraph(object):
     #     return self.sents
 
     def to_json(self):
-        return {"meta": self._meta, "text": self._text}
+        return (
+            {"meta": self._meta, "text": self._text}
+            | ({"spans": self._spans} if self._spans else {})
+            | ({"label": self._label} if self._label else {})
+        )
 
     def doc(self):
-        return (self._text, self._meta)
+        return (
+            self._text,
+            self._meta
+            | ({"spans": self._spans} if self._spans else {})
+            | ({"label": self._label} if self._label else {}),
+        )
 
     def text(self):
         return self._text
@@ -250,9 +279,7 @@ class Book(object):
         self.structure = self.parse_structure(e)
 
         if serialize:
-            with open(
-                Path(self.file_path.with_suffix(".json")), "w"
-            ) as f_json, open(
+            with open(Path(self.file_path.with_suffix(".json")), "w") as f_json, open(
                 Path(self.file_path.with_suffix(".txt")), "w"
             ) as f_txt:
                 json.dump(
@@ -339,7 +366,7 @@ class Book(object):
             if inferred_tag:
                 m["type"] = inferred_tag
             # FIXME: map z\d\d\d\d in v to something: https://www.daisy.org/z3998/2012/z3998-2012.html
-        return m
+        return ",".join(v for _, v in m.items())
 
     @staticmethod
     def tag_map(tag):
@@ -354,82 +381,46 @@ class Book(object):
                 t = item.get_id().lower()
                 level_info = self._infer_structure(t)
                 if not level_info:
+                    print(f"Ignoring non-level: {item}")
                     continue
                 body = item.get_body_content()
-                # We set the standard start and end events, even though we do not dispatch on start. Leaving
-                # start out, however, breaks the code.
+                # We set the standard start and end events, even though we do not
+                # dispatch on start. Leaving start out, however, breaks the code.
                 context = etree.iterparse(
                     BytesIO(body), events=("start", "end"), recover=True
                 )
                 d = []
-                paragraph_template = {"text": None, "meta": {}, "tags": []}
-                paragraph = deepcopy(paragraph_template)
                 for action, element in context:
-                    # Remove non-visible characters:
-                    text = element.text.replace("\u2060", "") if element.text else None
-                    if not text or (text and (text == "" or text.isspace())):
-                        continue
+                    if action == "end" and re.match(r"p|h\d", element.tag):
+                        paragraph = {"text": "", "meta": {}}
+                        if element.text:
+                            paragraph["text"] += clean_text(element.text)
+                        # We roughly follow spaCy/prodigy annotation data structure: https://prodi.gy/docs/api-interfaces
+                        # Add classification labels:
+                        is_tagged = self.attribute_map(element.attrib, element.tag)
+                        if len(is_tagged) > 0:
+                            paragraph["label"] = is_tagged
+                        for child in element:
+                            start = len(paragraph["text"])
+                            if child.text:
+                                paragraph["text"] += clean_text(child.text)
+                            end = len(paragraph["text"])
+                            is_valid_label = self.attribute_map(child.attrib, child.tag)
+                            if len(is_valid_label) > 0:
+                                paragraph["spans"] = paragraph.get("spans", []) + [
+                                    {
+                                        "text": clean_text(child.text) or "",
+                                        "start": start,
+                                        "end": end,
+                                        "label": is_valid_label,
+                                    }
+                                ]
+                            if child.tail:
+                                paragraph["text"] += clean_text(child.tail)
 
-                    if element.tag == "h2" and action == "end":
-                        d.append(
-                            {
-                                "text": text,
-                                "tags": [
-                                    {"type": "title", "start": 0, "end": len(text)}
-                                ],
-                            }
-                        )
-                    elif (
-                        element.tag == "br" or element.tag == "a"
-                    ):  # TODO Or new sentence/paragraph?
-                        continue
-                    elif element.tag == "p":
-                        if action == "end":
-                            # Concatenate all text fragments together. We let spaCy do sentence segmentation.
-                            if isinstance(paragraph["text"], list):
-                                paragraph["text"] = "".join(paragraph["text"])
-                                if "position" in paragraph:
-                                    del paragraph["position"]
-
-                            if paragraph and paragraph["text"]:
-                                d.append(paragraph)
-                                assert paragraph["text"] != ""
-                                assert paragraph["text"] is not None
-                            paragraph = deepcopy(paragraph_template)
-                        else:
-                            paragraph = deepcopy(paragraph_template)
-                            t = element.xpath("text()")
-                            paragraph["text"] = [s.replace("\u2060", "") for s in t]
-                    elif action == "end":
-                        if not paragraph["text"]:
-                            d.append(
-                                {
-                                    "text": text,
-                                    "meta": self.attribute_map(
-                                        element.attrib, element.tag
-                                    ),
-                                }
-                            )
-                            continue
-                        if "position" not in paragraph:
-                            paragraph["position"] = 1
-                        start = sum(
-                            len(s) for s in paragraph["text"][: paragraph["position"]]
-                        )
-                        end = start + len(text)
-                        inferred_attrs = self.attribute_map(element.attrib, element.tag)
-                        if len(inferred_attrs) != 0:
-                            paragraph["tags"].append(
-                                {
-                                    "render": element.tag,
-                                    "attrs": inferred_attrs,
-                                    "text": text,
-                                    "start": start,
-                                    "end": end,
-                                }
-                            )
-                        paragraph["text"].insert(paragraph["position"], text)
-                        paragraph["position"] += 2
+                        if paragraph["text"].strip() != "":
+                            d.append(paragraph)
+                    continue
 
                 level_info["paragraphs"] = d
                 if (
@@ -488,7 +479,7 @@ class Book(object):
         return {}
 
     def iter_section(self):
-        for section in self.section_idx:
+        for section in self.structure.sections:
             yield section
 
     def iter_level(self, level):
