@@ -381,7 +381,6 @@ class Book(object):
                 t = item.get_id().lower()
                 level_info = self._infer_structure(t)
                 if not level_info:
-                    print(f"Ignoring non-level: {item}")
                     continue
                 body = item.get_body_content()
                 # We set the standard start and end events, even though we do not
