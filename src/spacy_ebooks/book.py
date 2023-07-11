@@ -380,7 +380,10 @@ class Book(object):
             if item.is_chapter():
                 t = item.get_id().lower()
                 level_info = self._infer_structure(t)
-                if not level_info:
+                if level_info == "unknown":
+                    print(f"{level_info} t={t} item={item}")
+                    continue
+                elif not level_info:
                     continue
                 body = item.get_body_content()
                 # We set the standard start and end events, even though we do not
