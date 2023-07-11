@@ -9,9 +9,9 @@ nlp.add_pipe(
             "labels": ["PERSON", "ORGANISATION", "LOCATION", "TIME"]
             # CARDINAL, DATE, EVENT, FAC, GPE, LANGUAGE, LAW, LOC, MONEY, NORP, ORDINAL, ORG, PERCENT, PERSON, PRODUCT, QUANTITY, TIME, WORK_OF_ART
         },
-        "backend": {
-            "@llm_backends": "spacy.StableLM_HF.v1",
-            "model": "stabilityai/stablelm-tuned-alpha-3b",
+        "model": {
+            "@llm_models": "spacy.Falcon.v1",
+            "name": "falcon-7b-instruct",
             # "@llm_backends": "spacy.OpenLLaMa_HF.v1", # "spacy.REST.v1",
             # "model": "openlm-research/open_llama_3b_600bt_preview",
             # "api": "OpenAI",

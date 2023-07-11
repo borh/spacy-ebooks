@@ -162,7 +162,8 @@ def test_spacy_cached():
 #
 #     assert len(matches) == 17949
 
-# def test_llm_ner():
-#    r = llm_ner("Jack and Jill rode up the hill in Les Deux Alpes")
-#    assert len(r) == 1
-#    assert len(r[0][0]) > 1
+def test_llm_ner():
+    r = llm_ner("Jack and Jill rode up the hill in Les Deux Alpes")
+    print(r)
+    assert len(r) == 1
+    assert len(r[0][0]) > 1
