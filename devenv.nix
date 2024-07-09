@@ -1,6 +1,10 @@
-{ pkgs, lib, ... }:
-
 {
+  pkgs,
+  lib,
+  ...
+}: let
+  cuda = false;
+in {
   # https://devenv.sh/basics/
   # https://devenv.sh/packages/
   packages = with pkgs; [
@@ -25,26 +29,38 @@
 
   scripts.ptw.exec = "poetry run ptw";
 
-  env.LD_LIBRARY_PATH = lib.mkIf pkgs.stdenv.isLinux (
-    lib.makeLibraryPath (with pkgs; [
-      gcc-unwrapped.lib
-      linuxPackages_latest.nvidia_x11
-      zlib
-      cmake
-      cudaPackages.cudatoolkit
-      cudaPackages.cudnn
-      cudaPackages.libcublas
-      cudaPackages.libcurand
-      cudaPackages.libcufft
-      cudaPackages.libcusparse
-      cudaPackages.cuda_nvtx
-      cudaPackages.cuda_cupti
-      cudaPackages.cuda_nvrtc
-      cudaPackages.nccl
-    ])
-  );
-  env.CUDA_HOME = "${pkgs.cudaPackages.cudatoolkit}";
-  env.CUDA_PATH = "${pkgs.cudaPackages.cudatoolkit}";
+  env.LD_LIBRARY_PATH =
+    if cuda
+    then
+      (lib.mkIf pkgs.stdenv.isLinux (
+        lib.makeLibraryPath (with pkgs; [
+          gcc-unwrapped.lib
+          linuxPackages_latest.nvidia_x11
+          zlib
+          cmake
+          cudaPackages.cudatoolkit
+          cudaPackages.cudnn
+          cudaPackages.libcublas
+          cudaPackages.libcurand
+          cudaPackages.libcufft
+          cudaPackages.libcusparse
+          cudaPackages.cuda_nvtx
+          cudaPackages.cuda_cupti
+          cudaPackages.cuda_nvrtc
+          cudaPackages.nccl
+        ])
+      ))
+    else "";
+  env.CUDA_HOME = "${
+    if cuda
+    then pkgs.cudaPackages.cudatoolkit
+    else ''''
+  }";
+  env.CUDA_PATH = "${
+    if cuda
+    then pkgs.cudaPackages.cudatoolkit
+    else ''''
+  }";
 
   # https://devenv.sh/pre-commit-hooks/
   # pre-commit.hooks.shellcheck.enable = true;
