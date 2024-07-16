@@ -420,9 +420,10 @@ class Book(object):
                                         }
                                     ]
                                 else:
-                                    logging.warning(
-                                        f"Skipping label {is_valid_label}/{child.attrib}/{child.tag} in `{paragraph['text']}`, child=`{child.text}`, tail=`{child.tail}`, start={start}, end={end} :: annotation start `{paragraph['text'][start:]}`"
-                                    )
+                                    pass
+                                    # logging.warning(
+                                    #     f"Skipping label {is_valid_label}/{child.attrib}/{child.tag} in `{paragraph['text']}`, child=`{child.text}`, tail=`{child.tail}`, start={start}, end={end} :: annotation start `{paragraph['text'][start:]}`"
+                                    # )
                             if child.tail:
                                 paragraph["text"] += clean_text(child.tail)
 
