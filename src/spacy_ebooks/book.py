@@ -81,7 +81,6 @@ def textify(t):
 
 
 class Paragraph(object):
-
     # nlp = spacy.load("en_core_web_sm")
     # infixes = nlp.Defaults.infixes + (r"(?<=[0-9])–(?=[0-9-])",)
     # print(infixes)
@@ -163,7 +162,7 @@ class Paragraph(object):
 
 
 class BookStructure(object):
-    """Conveniance class to represent a book's structure in terms of parts, sections, chapters as well as associated text (paragraphs).
+    """Convenience class to represent a book's structure in terms of parts, sections, chapters as well as associated text (paragraphs).
     Includes export (serialization) functionality (currently only TEI and JSON).
 
     Args:
@@ -403,20 +402,27 @@ class Book(object):
                         if len(is_tagged) > 0:
                             paragraph["label"] = is_tagged
                         for child in element:
-                            start = len(paragraph["text"])
                             if child.text:
-                                paragraph["text"] += clean_text(child.text)
-                            end = len(paragraph["text"])
-                            is_valid_label = self.attribute_map(child.attrib, child.tag)
-                            if len(is_valid_label) > 0:
-                                paragraph["spans"] = paragraph.get("spans", []) + [
-                                    {
-                                        "text": clean_text(child.text) or "",
-                                        "start": start,
-                                        "end": end,
-                                        "label": is_valid_label,
-                                    }
-                                ]
+                                start = len(paragraph["text"])
+                                cleaned_child_text = clean_text(child.text)
+                                paragraph["text"] += cleaned_child_text
+                                end = len(paragraph["text"])
+                                is_valid_label = self.attribute_map(
+                                    child.attrib, child.tag
+                                )
+                                if len(is_valid_label) > 0 and start != end:
+                                    paragraph["spans"] = paragraph.get("spans", []) + [
+                                        {
+                                            "text": cleaned_child_text,
+                                            "start": start,
+                                            "end": end,
+                                            "label": is_valid_label,
+                                        }
+                                    ]
+                                else:
+                                    logging.warning(
+                                        f"Skipping label {is_valid_label}/{child.attrib}/{child.tag} in `{paragraph['text']}`, child=`{child.text}`, tail=`{child.tail}`, start={start}, end={end} :: annotation start `{paragraph['text'][start:]}`"
+                                    )
                             if child.tail:
                                 paragraph["text"] += clean_text(child.tail)
 
